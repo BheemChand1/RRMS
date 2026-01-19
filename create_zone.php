@@ -18,10 +18,10 @@
             <?php include 'includes/navbar.php'; ?>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-auto p-4 md:p-8 flex items-center justify-center">
+            <main class="flex-1 overflow-auto p-3 sm:p-4 md:p-8 flex items-center justify-center">
                 <div class="w-full max-w-6xl">
                     <!-- Breadcrumb -->
-                    <div class="mb-6 flex items-center gap-2 text-sm text-gray-600">
+                    <div class="mb-6 flex items-center gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
                         <a href="index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                         <i class="fas fa-chevron-right"></i>
                         <a href="#" class="text-blue-600 hover:text-blue-800">Zone</a>
@@ -30,9 +30,9 @@
                     </div>
 
                     <!-- Form Card -->
-                    <div class="bg-white rounded-lg shadow p-8">
-                        <h1 class="text-3xl font-bold text-gray-900 mb-2">Create New Zone</h1>
-                        <p class="text-gray-600 mb-8">Add a new zone to manage your regions and properties</p>
+                    <div class="bg-white rounded-lg shadow p-6 sm:p-8">
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Create New Zone</h1>
+                        <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add a new zone to manage your regions and properties</p>
 
                         <form class="space-y-6">
                             <!-- Zone Name -->

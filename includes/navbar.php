@@ -1,14 +1,13 @@
 <!-- Top Navbar -->
 <nav class="bg-white border-b border-gray-200 sticky top-0 z-30">
-    <div class="px-4 md:px-8 py-4 flex items-center justify-between">
+    <div class="px-2 sm:px-4 md:px-8 py-3 sm:py-4 flex items-center justify-between">
         <!-- Left side -->
         <div class="flex items-center gap-4">
             <button id="sidebarToggle" class="md:hidden text-gray-600 hover:text-gray-900 text-xl">
                 <i class="fas fa-bars"></i>
             </button>
             <div class="hidden md:block">
-                <h2 class="text-gray-800 font-semibold">Welcome back, John!</h2>
-                <p class="text-gray-500 text-sm">Here's what's happening with your property today.</p>
+                <h2 class="text-gray-800 font-semibold text-lg">RRMS Admin Panel</h2>
             </div>
         </div>
 

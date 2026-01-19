@@ -18,15 +18,11 @@
             <?php include 'includes/navbar.php'; ?>
 
             <!-- Dashboard Content -->
-            <main class="flex-1 overflow-auto p-4 md:p-8">
-                <!-- Header Section -->
-                <div class="mb-8">
-                    <h1 class="text-3xl font-bold text-gray-900 mb-2">Dashboard</h1>
-                    <p class="text-gray-600">January 17, 2026</p>
-                </div>
+            <main class="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
+               
 
                 <!-- Stats Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 mb-6 sm:mb-8">
                     <!-- Total Zones -->
                     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
                         <div class="flex items-center justify-between">

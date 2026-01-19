@@ -44,4 +44,6 @@
     setupMenuToggle('locationToggle', 'locationSubmenu', 'locationChevron');
     setupMenuToggle('roomToggle', 'roomSubmenu', 'roomChevron');
     setupMenuToggle('feedbackToggle', 'feedbackSubmenu', 'feedbackChevron');
+    setupMenuToggle('mealToggle', 'mealSubmenu', 'mealChevron');
+    setupMenuToggle('complaintToggle', 'complaintSubmenu', 'complaintChevron');
 </script>

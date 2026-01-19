@@ -18,7 +18,7 @@
             <?php include 'includes/navbar.php'; ?>
 
             <!-- Page Content -->
-            <main class="flex-1 overflow-auto p-4 md:p-8">
+            <main class="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
                 <!-- Breadcrumb -->
                 <div class="mb-6 flex items-center gap-2 text-sm text-gray-600">
                     <a href="index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
@@ -29,10 +29,10 @@
                 </div>
 
                 <!-- Header -->
-                <div class="flex items-center justify-between mb-6">
-                    <h1 class="text-2xl font-bold text-gray-900">All Rooms</h1>
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">All Rooms</h1>
                     <a href="create_room.php"
-                        class="bg-blue-600 text-white py-2.5 px-4 rounded-lg hover:bg-blue-700 font-medium transition-colors">
+                        class="w-full sm:w-auto bg-blue-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-blue-700 font-medium transition-colors text-center text-sm sm:text-base">
                         <i class="fas fa-plus mr-2"></i> Create Room
                     </a>
                 </div>

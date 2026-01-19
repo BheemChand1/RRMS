@@ -2,18 +2,18 @@
 <aside id="sidebar"
     class="w-64 bg-gradient-to-b from-slate-900 to-slate-800 text-white fixed h-screen overflow-y-auto transform -translate-x-full md:translate-x-0 transition-transform duration-300 z-40">
     <!-- Logo -->
-    <div class="p-6 border-b border-slate-700">
-        <div class="flex items-center gap-3">
-            <div class="w-10 h-10 bg-blue-500 rounded-lg flex items-center justify-center">
-                <i class="fas fa-home text-white text-lg"></i>
+    <div class="p-4 sm:p-6 border-b border-slate-700">
+        <div class="flex items-center gap-2 sm:gap-3">
+            <div class="w-8 h-8 sm:w-10 sm:h-10 bg-blue-500 rounded-lg flex items-center justify-center flex-shrink-0">
+                <i class="fas fa-home text-white text-sm sm:text-lg"></i>
             </div>
-            <h1 class="text-xl font-bold">RRMS</h1>
+            <h1 class="text-lg sm:text-xl font-bold">RRMS</h1>
         </div>
-        <p class="text-slate-400 text-sm mt-2">Room Management</p>
+        <p class="text-slate-400 text-xs sm:text-sm mt-2">Room Management</p>
     </div>
 
     <!-- Navigation Menu -->
-    <nav class="p-6 space-y-2">
+    <nav class="p-4 sm:p-6 space-y-2">
         <!-- Dashboard Menu Item -->
         <a href="index.php"
             class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
@@ -90,8 +90,20 @@
                     <i class="fas fa-eye w-4"></i>
                     <span>View Location</span>
                 </a>
+                <a href="all_locations.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-list w-4"></i>
+                    <span>All Locations</span>
+                </a>
             </div>
         </div>
+
+        <!-- All Locations Menu Item -->
+        <a href="all_locations.php"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+            <i class="fas fa-map-location-dot w-5"></i>
+            <span>All Locations</span>
+        </a>
 
         <!-- Room Menu Item -->
         <div>
@@ -137,6 +149,54 @@
                     class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
                     <i class="fas fa-eye w-4"></i>
                     <span>View Feedback</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Meal Menu Item -->
+        <div>
+            <button id="mealToggle"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-utensils w-5"></i>
+                    <span>Meal</span>
+                </div>
+                <i class="fas fa-chevron-right w-4 transition-transform duration-300" id="mealChevron"></i>
+            </button>
+            <div id="mealSubmenu" class="hidden mt-2 space-y-1 ml-4">
+                <a href="create_meal.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-plus w-4"></i>
+                    <span>Create Meal</span>
+                </a>
+                <a href="view_meal.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-eye w-4"></i>
+                    <span>View Meal</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Complaints Menu Item -->
+        <div>
+            <button id="complaintToggle"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-exclamation-circle w-5"></i>
+                    <span>Complaints</span>
+                </div>
+                <i class="fas fa-chevron-right w-4 transition-transform duration-300" id="complaintChevron"></i>
+            </button>
+            <div id="complaintSubmenu" class="hidden mt-2 space-y-1 ml-4">
+                <a href="create_complaint.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-plus w-4"></i>
+                    <span>Create Complaint</span>
+                </a>
+                <a href="view_complaint.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-eye w-4"></i>
+                    <span>View Complaints</span>
                 </a>
             </div>
         </div>
