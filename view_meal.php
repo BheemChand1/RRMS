@@ -1,3 +1,26 @@
+<?php
+require_once 'config/database.php';
+
+// Handle delete
+if (isset($_GET['delete'])) {
+    $id = (int)$_GET['delete'];
+    try {
+        $stmt = $pdo->prepare("DELETE FROM meals WHERE id = ?");
+        $stmt->execute([$id]);
+        header("Location: view_meal.php?msg=deleted");
+        exit;
+    } catch (PDOException $e) {
+        $error = "Error deleting meal: " . $e->getMessage();
+    }
+}
+
+// Fetch all meals with location names
+$stmt = $pdo->query("SELECT m.*, l.name as location_name 
+                     FROM meals m 
+                     LEFT JOIN locations l ON m.location_id = l.id 
+                     ORDER BY m.created_at DESC");
+$meals = $stmt->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,6 +51,19 @@
                     <span class="text-gray-900 font-medium">View Meals</span>
                 </div>
 
+                <!-- Alert Messages -->
+                <?php if (isset($_GET['msg']) && $_GET['msg'] === 'deleted'): ?>
+                    <div class="mb-6 p-4 rounded-lg bg-green-100 text-green-700 border border-green-400">
+                        Meal deleted successfully!
+                    </div>
+                <?php endif; ?>
+
+                <?php if (isset($error)): ?>
+                    <div class="mb-6 p-4 rounded-lg bg-red-100 text-red-700 border border-red-400">
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
+                <?php endif; ?>
+
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
                     <h1 class="text-xl sm:text-2xl font-bold text-gray-900">All Meals</h1>
@@ -43,28 +79,55 @@
                         <table class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Meal Type</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Location</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Price</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
-                                    <th class="px-4 sm:px-6 py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Meal Type</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Price</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Location</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Created At</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Updated At</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Breakfast</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Ahmedabad</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">₹200</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
+                                <?php if (count($meals) > 0): ?>
+                                    <?php foreach ($meals as $meal): ?>
+                                        <tr class="hover:bg-gray-50">
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo $meal['id']; ?></td>
+                                            <td class="px-6 py-4 text-sm font-medium text-gray-900"><?php echo htmlspecialchars($meal['meal_type']); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600">₹<?php echo number_format($meal['price'], 2); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($meal['location_name'] ?? 'N/A'); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($meal['created_at'])); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($meal['updated_at'])); ?></td>
+                                            <td class="px-6 py-4 text-sm">
+                                                <a href="edit_meal.php?id=<?php echo $meal['id']; ?>" class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3">Edit</a>
+                                                <a href="view_meal.php?delete=<?php echo $meal['id']; ?>" onclick="return confirm('Are you sure you want to delete this meal?')" class="text-red-600 hover:text-red-800 hover:underline font-medium">Delete</a>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                            <i class="fas fa-inbox text-4xl mb-3"></i>
+                                            <p>No meals found. <a href="create_meal.php" class="text-blue-600 hover:underline">Create one now</a></p>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Pagination -->
+                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
+                        <p class="text-sm text-gray-600">Showing <span class="font-medium"><?php echo count($meals); ?></span> meals</p>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <?php include 'includes/scripts.php'; ?>
+</body>
+
+</html>
                                 <tr class="hover:bg-gray-50">
                                     <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Lunch</td>
                                     <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Bangalore</td>

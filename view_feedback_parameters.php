@@ -5,18 +5,21 @@ require_once 'config/database.php';
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     try {
-        $stmt = $pdo->prepare("DELETE FROM zones WHERE id = ?");
+        $stmt = $pdo->prepare("DELETE FROM feedback_parameters WHERE id = ?");
         $stmt->execute([$id]);
-        header("Location: view_zones.php?msg=deleted");
+        header("Location: view_feedback_parameters.php?msg=deleted");
         exit;
     } catch (PDOException $e) {
-        $error = "Cannot delete zone: It may have related divisions or locations.";
+        $error = "Cannot delete parameter: It may have related feedbacks.";
     }
 }
 
-// Fetch all zones
-$stmt = $pdo->query("SELECT * FROM zones ORDER BY created_at DESC");
-$zones = $stmt->fetchAll();
+// Fetch all feedback parameters with location names
+$stmt = $pdo->query("SELECT fp.*, l.name as location_name 
+                     FROM feedback_parameters fp 
+                     LEFT JOIN locations l ON fp.location_id = l.id 
+                     ORDER BY fp.created_at DESC");
+$parameters = $stmt->fetchAll();
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -24,7 +27,7 @@ $zones = $stmt->fetchAll();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>View Zones - RRMS Admin Dashboard</title>
+    <title>View Feedback Parameters - RRMS Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -43,15 +46,15 @@ $zones = $stmt->fetchAll();
                 <div class="mb-6 flex items-center gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
                     <a href="index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                     <i class="fas fa-chevron-right"></i>
-                    <a href="#" class="text-blue-600 hover:text-blue-800">Zone</a>
+                    <a href="#" class="text-blue-600 hover:text-blue-800">Feedback</a>
                     <i class="fas fa-chevron-right"></i>
-                    <span class="text-gray-900 font-medium">View Zones</span>
+                    <span class="text-gray-900 font-medium">Feedback Parameters</span>
                 </div>
 
                 <!-- Alert Messages -->
                 <?php if (isset($_GET['msg']) && $_GET['msg'] === 'deleted'): ?>
                     <div class="mb-6 p-4 rounded-lg bg-green-100 text-green-700 border border-green-400">
-                        Zone deleted successfully!
+                        Feedback parameter deleted successfully!
                     </div>
                 <?php endif; ?>
 
@@ -63,10 +66,10 @@ $zones = $stmt->fetchAll();
 
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
-                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">All Zones</h1>
-                    <a href="create_zone.php"
+                    <h1 class="text-xl sm:text-2xl font-bold text-gray-900">Feedback Parameters</h1>
+                    <a href="create_feedback_parameter.php"
                         class="w-full sm:w-auto bg-blue-600 text-white py-2 sm:py-2.5 px-4 rounded-lg hover:bg-blue-700 font-medium transition-colors text-center text-sm sm:text-base">
-                        <i class="fas fa-plus mr-2"></i> Create Zone
+                        <i class="fas fa-plus mr-2"></i> Add Parameter
                     </a>
                 </div>
 
@@ -77,23 +80,23 @@ $zones = $stmt->fetchAll();
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Zone Name</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Parameter Name</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Location</th>
                                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Created At</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Updated At</th>
                                     <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <?php if (count($zones) > 0): ?>
-                                    <?php foreach ($zones as $zone): ?>
+                                <?php if (count($parameters) > 0): ?>
+                                    <?php foreach ($parameters as $param): ?>
                                         <tr class="hover:bg-gray-50">
-                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo $zone['id']; ?></td>
-                                            <td class="px-6 py-4 text-sm font-medium text-gray-900"><?php echo htmlspecialchars($zone['name']); ?></td>
-                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($zone['created_at'])); ?></td>
-                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($zone['updated_at'])); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo $param['id']; ?></td>
+                                            <td class="px-6 py-4 text-sm font-medium text-gray-900"><?php echo htmlspecialchars($param['name']); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($param['location_name'] ?? 'N/A'); ?></td>
+                                            <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($param['created_at'])); ?></td>
                                             <td class="px-6 py-4 text-sm">
-                                                <a href="edit_zone.php?id=<?php echo $zone['id']; ?>" class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3">Edit</a>
-                                                <a href="view_zones.php?delete=<?php echo $zone['id']; ?>" onclick="return confirm('Are you sure you want to delete this zone?')" class="text-red-600 hover:text-red-800 hover:underline font-medium">Delete</a>
+                                                <a href="edit_feedback_parameter.php?id=<?php echo $param['id']; ?>" class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3">Edit</a>
+                                                <a href="view_feedback_parameters.php?delete=<?php echo $param['id']; ?>" onclick="return confirm('Are you sure you want to delete this parameter?')" class="text-red-600 hover:text-red-800 hover:underline font-medium">Delete</a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -101,7 +104,7 @@ $zones = $stmt->fetchAll();
                                     <tr>
                                         <td colspan="5" class="px-6 py-8 text-center text-gray-500">
                                             <i class="fas fa-inbox text-4xl mb-3"></i>
-                                            <p>No zones found. <a href="create_zone.php" class="text-blue-600 hover:underline">Create one now</a></p>
+                                            <p>No feedback parameters found. <a href="create_feedback_parameter.php" class="text-blue-600 hover:underline">Create one now</a></p>
                                         </td>
                                     </tr>
                                 <?php endif; ?>
@@ -110,7 +113,7 @@ $zones = $stmt->fetchAll();
                     </div>
                     <!-- Pagination -->
                     <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
-                        <p class="text-sm text-gray-600">Showing <span class="font-medium"><?php echo count($zones); ?></span> zones</p>
+                        <p class="text-sm text-gray-600">Showing <span class="font-medium"><?php echo count($parameters); ?></span> parameters</p>
                     </div>
                 </div>
             </main>

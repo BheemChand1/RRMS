@@ -1,3 +1,28 @@
+<?php
+require_once 'config/database.php';
+
+$message = '';
+$messageType = '';
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['zoneName'] ?? '');
+    
+    if (!empty($name)) {
+        try {
+            $stmt = $pdo->prepare("INSERT INTO zones (name) VALUES (?)");
+            $stmt->execute([$name]);
+            $message = "Zone created successfully!";
+            $messageType = "success";
+        } catch (PDOException $e) {
+            $message = "Error creating zone: " . $e->getMessage();
+            $messageType = "error";
+        }
+    } else {
+        $message = "Please enter a zone name.";
+        $messageType = "error";
+    }
+}
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -24,33 +49,31 @@
                     <div class="mb-6 flex items-center gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
                         <a href="index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                         <i class="fas fa-chevron-right"></i>
-                        <a href="#" class="text-blue-600 hover:text-blue-800">Zone</a>
+                        <a href="view_zones.php" class="text-blue-600 hover:text-blue-800">Zone</a>
                         <i class="fas fa-chevron-right"></i>
                         <span class="text-gray-900 font-medium">Create Zone</span>
                     </div>
+
+                    <!-- Alert Message -->
+                    <?php if ($message): ?>
+                        <div class="mb-6 p-4 rounded-lg <?php echo $messageType === 'success' ? 'bg-green-100 text-green-700 border border-green-400' : 'bg-red-100 text-red-700 border border-red-400'; ?>">
+                            <?php echo htmlspecialchars($message); ?>
+                        </div>
+                    <?php endif; ?>
 
                     <!-- Form Card -->
                     <div class="bg-white rounded-lg shadow p-6 sm:p-8">
                         <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Create New Zone</h1>
                         <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add a new zone to manage your regions and properties</p>
 
-                        <form class="space-y-6">
+                        <form method="POST" class="space-y-6">
                             <!-- Zone Name -->
                             <div>
                                 <label for="zoneName" class="block text-sm font-semibold text-gray-700 mb-3">Zone Name
                                     <span class="text-red-600">*</span></label>
-                                <input type="text" id="zoneName" placeholder="e.g., Western Railways, Northern Railways"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                <input type="text" id="zoneName" name="zoneName" placeholder="e.g., Western Railways, Northern Railways"
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
                                 <p class="text-xs text-gray-500 mt-2">Enter a unique name for the zone</p>
-                            </div>
-
-                            <!-- Column Name -->
-                            <div>
-                                <label for="columnName" class="block text-sm font-semibold text-gray-700 mb-3">Column
-                                    Name <span class="text-red-600">*</span></label>
-                                <input type="text" id="columnName" placeholder="e.g., WR, NR, NWR"
-                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                <p class="text-xs text-gray-500 mt-2">Short identifier for the zone</p>
                             </div>
 
                             <!-- Buttons -->

@@ -9,31 +9,31 @@ $stmt = $pdo->query("SELECT * FROM locations ORDER BY name ASC");
 $locations = $stmt->fetchAll();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Handle bulk complaint insertion
-    if (isset($_POST['complaints']) && is_array($_POST['complaints']) && count($_POST['complaints']) > 0) {
+    // Handle bulk feedback parameter insertion
+    if (isset($_POST['parameters']) && is_array($_POST['parameters']) && count($_POST['parameters']) > 0) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO complaint_types (complaint_type, location_id) VALUES (?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO feedback_parameters (name, location_id) VALUES (?, ?)");
             $insertedCount = 0;
             
-            foreach ($_POST['complaints'] as $complaint) {
-                $complaint_type = trim($complaint['complaint_type'] ?? '');
-                $location_id = (int)($complaint['location_id'] ?? 0);
+            foreach ($_POST['parameters'] as $param) {
+                $name = trim($param['name'] ?? '');
+                $location_id = (int)($param['location_id'] ?? 0);
                 
-                if (!empty($complaint_type) && $location_id > 0) {
-                    $stmt->execute([$complaint_type, $location_id]);
+                if (!empty($name) && $location_id > 0) {
+                    $stmt->execute([$name, $location_id]);
                     $insertedCount++;
                 }
             }
             
             if ($insertedCount > 0) {
-                $message = "Successfully created $insertedCount complaint type(s)!";
+                $message = "Successfully created $insertedCount feedback parameter(s)!";
                 $messageType = "success";
             } else {
-                $message = "No valid complaints to insert.";
+                $message = "No valid parameters to insert.";
                 $messageType = "error";
             }
         } catch (PDOException $e) {
-            $message = "Error creating complaints: " . $e->getMessage();
+            $message = "Error creating parameters: " . $e->getMessage();
             $messageType = "error";
         }
     }
@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Create Complaint Type - RRMS Admin Dashboard</title>
+    <title>Create Feedback Parameter - RRMS Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
@@ -65,9 +65,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-6 flex items-center gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
                         <a href="index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                         <i class="fas fa-chevron-right"></i>
-                        <a href="view_complaint.php" class="text-blue-600 hover:text-blue-800">Complaint Types</a>
+                        <a href="view_feedback_parameters.php" class="text-blue-600 hover:text-blue-800">Feedback Parameters</a>
                         <i class="fas fa-chevron-right"></i>
-                        <span class="text-gray-900 font-medium">Create Complaint Type</span>
+                        <span class="text-gray-900 font-medium">Create Parameter</span>
                     </div>
 
                     <!-- Alert Message -->
@@ -79,30 +79,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                     <!-- Form Card -->
                     <div class="bg-white rounded-lg shadow p-6 sm:p-8">
-                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Create New Complaint Type</h1>
-                        <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add multiple complaint types at once</p>
+                        <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 mb-1 sm:mb-2">Create Feedback Parameters</h1>
+                        <p class="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8">Add multiple feedback parameters at once</p>
 
                         <form method="POST" class="space-y-6">
                             <!-- Input Fields -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <!-- Location -->
+                                <!-- Parameter Name -->
+                                <div>
+                                    <label for="name" class="block text-sm font-semibold text-gray-700 mb-3">Parameter Name <span class="text-red-600">*</span></label>
+                                    <input type="text" id="name" placeholder="e.g., Quality of reception"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                </div>
+
+                                <!-- Location Selection -->
                                 <div>
                                     <label for="location_id" class="block text-sm font-semibold text-gray-700 mb-3">Location <span class="text-red-600">*</span></label>
                                     <select id="location_id"
                                         class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                        <option value="">Select Location</option>
+                                        <option value="">Select a Location</option>
                                         <?php foreach ($locations as $location): ?>
                                             <option value="<?php echo $location['id']; ?>"><?php echo htmlspecialchars($location['name']); ?></option>
                                         <?php endforeach; ?>
                                     </select>
-                                </div>
-
-                                <!-- Complaint Type -->
-                                <div>
-                                    <label for="complaint_type" class="block text-sm font-semibold text-gray-700 mb-3">Complaint Type <span class="text-red-600">*</span></label>
-                                    <input type="text" id="complaint_type"
-                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        placeholder="e.g., Food Related, Security Related">
                                 </div>
                             </div>
 
@@ -114,24 +113,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 </button>
                             </div>
 
-                            <!-- Complaint Types Table -->
+                            <!-- Parameters Table -->
                             <div>
-                                <label class="block text-sm font-semibold text-gray-700 mb-4">Added Complaint Types</label>
+                                <label class="block text-sm font-semibold text-gray-700 mb-4">Added Parameters</label>
                                 <div class="overflow-x-auto">
                                     <table class="w-full border-collapse">
                                         <thead>
                                             <tr class="bg-gray-50 border-b border-gray-300">
+                                                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Parameter Name</th>
                                                 <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Location</th>
-                                                <th class="px-4 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Complaint Type</th>
                                                 <th class="px-4 py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Action</th>
                                             </tr>
                                         </thead>
-                                        <tbody id="complaintsTableBody">
+                                        <tbody id="parametersTableBody">
                                             <!-- Rows will be added here -->
                                         </tbody>
                                     </table>
                                     <div id="emptyMessage" class="text-center py-8 text-gray-500">
-                                        <p class="text-sm">No complaint types added yet. Click "Add Row" to add types.</p>
+                                        <p class="text-sm">No parameters added yet. Click "Add Row" to add parameters.</p>
                                     </div>
                                 </div>
                             </div>
@@ -142,7 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                     class="flex-1 bg-blue-600 text-white py-2.5 px-6 rounded-lg hover:bg-blue-700 font-medium transition-colors">
                                     <i class="fas fa-save mr-2"></i> Submit All
                                 </button>
-                                <a href="view_complaint.php"
+                                <a href="view_feedback_parameters.php"
                                     class="flex-1 bg-gray-700 text-white py-2.5 px-6 rounded-lg hover:bg-gray-800 font-medium transition-colors text-center">
                                     <i class="fas fa-arrow-left mr-2"></i> Back
                                 </a>
@@ -157,26 +156,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <?php include 'includes/scripts.php'; ?>
 
     <script>
-        let complaintRowCount = 0;
+        let paramRowCount = 0;
 
         document.getElementById('addRowBtn').addEventListener('click', function(e) {
             e.preventDefault();
-            const complaintType = document.getElementById('complaint_type').value;
+            const paramName = document.getElementById('name').value;
             const locationId = document.getElementById('location_id').value;
             const locationName = document.getElementById('location_id').options[document.getElementById('location_id').selectedIndex].text;
 
-            if (!complaintType || !locationId) {
+            if (!paramName || !locationId) {
                 alert('Please fill all fields before adding a row');
                 return;
             }
 
-            addComplaintRow(complaintType, locationId, locationName);
-            document.getElementById('complaint_type').value = '';
+            addParameterRow(paramName, locationId, locationName);
+            document.getElementById('name').value = '';
             document.getElementById('location_id').value = '';
         });
 
-        function addComplaintRow(complaintType, locationId, locationName) {
-            const tableBody = document.getElementById('complaintsTableBody');
+        function addParameterRow(paramName, locationId, locationName) {
+            const tableBody = document.getElementById('parametersTableBody');
             const emptyMessage = document.getElementById('emptyMessage');
 
             if (emptyMessage && emptyMessage.style.display !== 'none') {
@@ -184,38 +183,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             const row = document.createElement('tr');
-            row.id = 'complaint-row-' + complaintRowCount;
+            row.id = 'param-row-' + paramRowCount;
             row.classList.add('border-b', 'border-gray-200', 'hover:bg-gray-50');
             row.innerHTML = `
+                <td class="px-4 py-3 text-sm text-gray-700">${paramName}</td>
                 <td class="px-4 py-3 text-sm text-gray-700">${locationName}</td>
-                <td class="px-4 py-3 text-sm text-gray-700">${complaintType}</td>
                 <td class="px-4 py-3 text-center">
-                    <button type="button" onclick="deleteComplaintRow(${complaintRowCount})" class="text-red-600 hover:text-red-800 text-sm font-medium">
+                    <button type="button" onclick="deleteParameterRow(${paramRowCount})" class="text-red-600 hover:text-red-800 text-sm font-medium">
                         <i class="fas fa-trash mr-1"></i> Delete
                     </button>
                 </td>
-                <input type="hidden" name="complaints[${complaintRowCount}][complaint_type]" value="${complaintType}">
-                <input type="hidden" name="complaints[${complaintRowCount}][location_id]" value="${locationId}">
+                <input type="hidden" name="parameters[${paramRowCount}][name]" value="${paramName}">
+                <input type="hidden" name="parameters[${paramRowCount}][location_id]" value="${locationId}">
             `;
             tableBody.appendChild(row);
-            complaintRowCount++;
+            paramRowCount++;
         }
 
-        function deleteComplaintRow(id) {
-            const row = document.getElementById('complaint-row-' + id);
+        function deleteParameterRow(id) {
+            const row = document.getElementById('param-row-' + id);
             if (row) row.remove();
             
-            const tableBody = document.getElementById('complaintsTableBody');
+            const tableBody = document.getElementById('parametersTableBody');
             if (tableBody.children.length === 0) {
                 document.getElementById('emptyMessage').style.display = 'block';
             }
         }
 
         document.querySelector('form').addEventListener('submit', function(e) {
-            const tableBody = document.getElementById('complaintsTableBody');
+            const tableBody = document.getElementById('parametersTableBody');
             if (tableBody.children.length === 0) {
                 e.preventDefault();
-                alert('Please add at least one complaint type before submitting');
+                alert('Please add at least one parameter before submitting');
             }
         });
     </script>

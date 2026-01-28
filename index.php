@@ -1,3 +1,11 @@
+<?php
+require_once 'config/database.php';
+
+// Fetch total counts from database
+$totalZones = $pdo->query("SELECT COUNT(*) as count FROM zones")->fetch()['count'];
+$totalDivisions = $pdo->query("SELECT COUNT(*) as count FROM divisions")->fetch()['count'];
+$totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch()['count'];
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -28,7 +36,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Zones</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">8</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalZones; ?></p>
                                 <p class="text-gray-600 text-xs mt-2">Across all locations</p>
                             </div>
                             <div class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -42,7 +50,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Divisions</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">12</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalDivisions; ?></p>
                                 <p class="text-gray-600 text-xs mt-2">Active divisions</p>
                             </div>
                             <div class="w-14 h-14 bg-cyan-100 rounded-lg flex items-center justify-center">
@@ -56,7 +64,7 @@
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Locations</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">6</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalLocations; ?></p>
                                 <p class="text-gray-600 text-xs mt-2">Properties managed</p>
                             </div>
                             <div class="w-14 h-14 bg-purple-100 rounded-lg flex items-center justify-center">
