@@ -17,11 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $short_name = trim($_POST['shortName'] ?? '');
     $zone_id = (int)($_POST['zone_id'] ?? 0);
     $division_id = (int)($_POST['division_id'] ?? 0);
+    $latitude = !empty($_POST['latitude']) ? (float)$_POST['latitude'] : null;
+    $longitude = !empty($_POST['longitude']) ? (float)$_POST['longitude'] : null;
+    $is_subscribed = isset($_POST['is_subscribed']) ? 1 : 0;
+    $subscription_start = !empty($_POST['subscription_start']) ? $_POST['subscription_start'] : null;
+    $subscription_end = !empty($_POST['subscription_end']) ? $_POST['subscription_end'] : null;
     
     if (!empty($name) && !empty($short_name) && $zone_id > 0 && $division_id > 0) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO locations (name, short_name, zone_id, division_id) VALUES (?, ?, ?, ?)");
-            $stmt->execute([$name, $short_name, $zone_id, $division_id]);
+            $stmt = $pdo->prepare("INSERT INTO locations (name, short_name, zone_id, division_id, latitude, longitude, is_subscribed, subscription_start, subscription_end) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->execute([$name, $short_name, $zone_id, $division_id, $latitude, $longitude, $is_subscribed, $subscription_start, $subscription_end]);
             $message = "Location created successfully!";
             $messageType = "success";
         } catch (PDOException $e) {
@@ -119,6 +124,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <option value="<?php echo $division['id']; ?>"><?php echo htmlspecialchars($division['name']); ?></option>
                                     <?php endforeach; ?>
                                 </select>
+                            </div>
+
+                            <!-- Latitude and Longitude -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label for="latitude" class="block text-sm font-semibold text-gray-700 mb-3">Latitude
+                                        <span class="text-gray-400 font-normal">(Optional)</span></label>
+                                    <input type="number" id="latitude" name="latitude" step="any" placeholder="e.g., 23.0225"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-2">Latitude coordinate (-90 to 90)</p>
+                                </div>
+                                <div>
+                                    <label for="longitude" class="block text-sm font-semibold text-gray-700 mb-3">Longitude
+                                        <span class="text-gray-400 font-normal">(Optional)</span></label>
+                                    <input type="number" id="longitude" name="longitude" step="any" placeholder="e.g., 72.5714"
+                                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    <p class="text-xs text-gray-500 mt-2">Longitude coordinate (-180 to 180)</p>
+                                </div>
+                            </div>
+
+                            <!-- Subscription Settings -->
+                            <div class="border-t border-gray-200 pt-6">
+                                <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fas fa-crown text-yellow-500 mr-2"></i>Subscription Settings</h3>
+                                
+                                <!-- Is Subscribed Toggle -->
+                                <div class="mb-6">
+                                    <label class="flex items-center cursor-pointer">
+                                        <input type="checkbox" id="is_subscribed" name="is_subscribed" value="1" checked
+                                            class="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                        <span class="ml-3 text-sm font-semibold text-gray-700">Location is Subscribed</span>
+                                    </label>
+                                    <p class="text-xs text-gray-500 mt-2 ml-8">Enable subscription for this location (default: enabled)</p>
+                                </div>
+
+                                <!-- Subscription Period -->
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="subscription_start" class="block text-sm font-semibold text-gray-700 mb-3">Subscription Start Date
+                                            <span class="text-gray-400 font-normal">(Optional)</span></label>
+                                        <input type="date" id="subscription_start" name="subscription_start"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                    <div>
+                                        <label for="subscription_end" class="block text-sm font-semibold text-gray-700 mb-3">Subscription End Date
+                                            <span class="text-gray-400 font-normal">(Optional)</span></label>
+                                        <input type="date" id="subscription_end" name="subscription_end"
+                                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                                    </div>
+                                </div>
                             </div>
 
                             <!-- Buttons -->

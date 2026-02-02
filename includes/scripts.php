@@ -4,26 +4,28 @@
     const sidebar = document.getElementById('sidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
-    sidebarToggle.addEventListener('click', () => {
-        sidebar.classList.toggle('-translate-x-full');
-        sidebarOverlay.classList.toggle('hidden');
-    });
-
-    sidebarOverlay.addEventListener('click', () => {
-        sidebar.classList.add('-translate-x-full');
-        sidebarOverlay.classList.add('hidden');
-    });
-
-    // Close sidebar when a link is clicked on mobile
-    const sidebarLinks = sidebar.querySelectorAll('a');
-    sidebarLinks.forEach(link => {
-        link.addEventListener('click', () => {
-            if (window.innerWidth < 768) {
-                sidebar.classList.add('-translate-x-full');
-                sidebarOverlay.classList.add('hidden');
-            }
+    if (sidebarToggle && sidebar && sidebarOverlay) {
+        sidebarToggle.addEventListener('click', () => {
+            sidebar.classList.toggle('-translate-x-full');
+            sidebarOverlay.classList.toggle('hidden');
         });
-    });
+
+        sidebarOverlay.addEventListener('click', () => {
+            sidebar.classList.add('-translate-x-full');
+            sidebarOverlay.classList.add('hidden');
+        });
+
+        // Close sidebar when a link is clicked on mobile
+        const sidebarLinks = sidebar.querySelectorAll('a');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 768) {
+                    sidebar.classList.add('-translate-x-full');
+                    sidebarOverlay.classList.add('hidden');
+                }
+            });
+        });
+    }
 
     // Menu Toggle Functionality
     function setupMenuToggle(toggleId, submenuId, chevronId) {
@@ -31,7 +33,7 @@
         const submenu = document.getElementById(submenuId);
         const chevron = document.getElementById(chevronId);
 
-        if (toggleBtn) {
+        if (toggleBtn && submenu && chevron) {
             toggleBtn.addEventListener('click', () => {
                 submenu.classList.toggle('hidden');
                 chevron.style.transform = submenu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(90deg)';
@@ -46,4 +48,5 @@
     setupMenuToggle('feedbackToggle', 'feedbackSubmenu', 'feedbackChevron');
     setupMenuToggle('mealToggle', 'mealSubmenu', 'mealChevron');
     setupMenuToggle('complaintToggle', 'complaintSubmenu', 'complaintChevron');
+    setupMenuToggle('reportsToggle', 'reportsSubmenu', 'reportsChevron');
 </script>

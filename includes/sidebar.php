@@ -98,13 +98,6 @@
             </div>
         </div>
 
-        <!-- All Locations Menu Item -->
-        <a href="all_locations.php"
-            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
-            <i class="fas fa-map-location-dot w-5"></i>
-            <span>All Locations</span>
-        </a>
-
         <!-- Room Menu Item -->
         <div>
             <button id="roomToggle"
@@ -200,24 +193,42 @@
                 </a>
             </div>
         </div>
+
+        <!-- Reports Menu Item -->
+        <div>
+            <button id="reportsToggle"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-file-alt w-5"></i>
+                    <span>Reports</span>
+                </div>
+                <i class="fas fa-chevron-right w-4 transition-transform duration-300" id="reportsChevron"></i>
+            </button>
+            <div id="reportsSubmenu" class="hidden mt-2 space-y-1 ml-4">
+                <a href="reports/booking_requests.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-calendar-check w-4"></i>
+                    <span>Booking Requests</span>
+                </a>
+                <a href="reports/contractor_info.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-file-contract w-4"></i>
+                    <span>Contractor's Contract</span>
+                </a>
+                <a href="reports/wakeup_requests.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-bell w-4"></i>
+                    <span>Wake Up Requests</span>
+                </a>
+                <a href="reports/app_users.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-mobile-alt w-4"></i>
+                    <span>App Users</span>
+                </a>
+            </div>
+        </div>
     </nav>
 
-    <!-- User Profile -->
-    <div class="absolute bottom-0 w-full p-6 border-t border-slate-700 bg-slate-900">
-        <div class="flex items-center gap-3">
-            <div
-                class="w-10 h-10 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center">
-                <span class="text-white font-bold">JD</span>
-            </div>
-            <div class="flex-1">
-                <p class="text-sm font-medium">RRMS admin</p>
-                <p class="text-xs text-slate-400">Admin</p>
-            </div>
-            <button class="text-slate-400 hover:text-white">
-                <i class="fas fa-chevron-down"></i>
-            </button>
-        </div>
-    </div>
 </aside>
 
 <!-- Sidebar Overlay (Mobile) -->

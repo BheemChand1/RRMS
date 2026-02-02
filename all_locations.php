@@ -1,3 +1,16 @@
+<?php
+require_once 'config/database.php';
+
+// Fetch all locations with zone and division info
+$stmt = $pdo->query("
+    SELECT l.*, z.name as zone_name, d.name as division_name 
+    FROM locations l 
+    LEFT JOIN zones z ON l.zone_id = z.id 
+    LEFT JOIN divisions d ON l.division_id = d.id 
+    ORDER BY l.name ASC
+");
+$locations = $stmt->fetchAll();
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -44,168 +57,84 @@
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
                                     <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Location Name</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Location Short Name</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Short Name</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Subscription</th>
+                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Subscription Period</th>
                                     <th class="px-4 sm:px-6 py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Dhagandhara</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Close
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Ahmedabad</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Sabarmati</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Close
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Gandhidham</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Palanpur</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                            Close
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Bhildi</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Western Railways</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4">
-                                        <div class="flex flex-wrap gap-2 justify-center">
-                                            <button class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
-                                                <i class="fas fa-eye"></i>
-                                            </button>
-                                            <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
-                                                <i class="fas fa-edit"></i>
-                                            </button>
-                                            <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="Deactivate">
-                                                <i class="fas fa-ban"></i>
-                                            </button>
-                                            <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                <?php if (count($locations) > 0): ?>
+                                    <?php foreach ($locations as $location): ?>
+                                        <?php
+                                        // Determine subscription status
+                                        $isSubscribed = $location['is_subscribed'] == 1;
+                                        $today = date('Y-m-d');
+                                        $isExpired = false;
+                                        if ($location['subscription_end'] && $location['subscription_end'] < $today) {
+                                            $isExpired = true;
+                                        }
+                                        ?>
+                                        <tr class="hover:bg-gray-50" data-id="<?php echo $location['id']; ?>">
+                                            <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900"><?php echo htmlspecialchars($location['name']); ?></td>
+                                            <td class="px-4 sm:px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($location['short_name']); ?></td>
+                                            <td class="px-4 sm:px-6 py-4 text-sm">
+                                                <?php if ($isSubscribed && !$isExpired): ?>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                                        <i class="fas fa-check-circle mr-1"></i> Subscribed
+                                                    </span>
+                                                <?php elseif ($isExpired): ?>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                                        <i class="fas fa-exclamation-circle mr-1"></i> Expired
+                                                    </span>
+                                                <?php else: ?>
+                                                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                                        <i class="fas fa-times-circle mr-1"></i> Not Subscribed
+                                                    </span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">
+                                                <?php if ($location['subscription_start'] && $location['subscription_end']): ?>
+                                                    <div class="flex flex-col">
+                                                        <span class="text-xs text-gray-500">Start: <?php echo date('d M Y', strtotime($location['subscription_start'])); ?></span>
+                                                        <span class="text-xs text-gray-500">End: <?php echo date('d M Y', strtotime($location['subscription_end'])); ?></span>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <span class="text-gray-400">-</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="px-4 sm:px-6 py-4">
+                                                <div class="flex flex-wrap gap-2 justify-center">
+                                                    <a href="view_location_detail.php?id=<?php echo $location['id']; ?>" class="text-blue-600 hover:text-blue-800 font-medium text-xs sm:text-sm" title="View">
+                                                        <i class="fas fa-eye"></i>
+                                                    </a>
+                                                    <button class="text-green-600 hover:text-green-800 font-medium text-xs sm:text-sm" title="Edit">
+                                                        <i class="fas fa-edit"></i>
+                                                    </button>
+                                                    <button class="text-yellow-600 hover:text-yellow-800 font-medium text-xs sm:text-sm" title="<?php echo $isSubscribed ? 'Unsubscribe' : 'Subscribe'; ?>">
+                                                        <i class="fas fa-<?php echo $isSubscribed ? 'ban' : 'check'; ?>"></i>
+                                                    </button>
+                                                    <button class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm" title="Delete">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="5" class="px-4 sm:px-6 py-8 text-center text-gray-500">
+                                            <i class="fas fa-map-marker-alt text-4xl mb-3 text-gray-300"></i>
+                                            <p>No locations found. <a href="create_location.php" class="text-blue-600 hover:underline">Create one</a></p>
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>
                     <!-- Pagination -->
                     <div class="bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <p class="text-xs sm:text-sm text-gray-600">Showing <span class="font-medium">1-6</span> of <span class="font-medium">6</span> locations</p>
+                        <p class="text-xs sm:text-sm text-gray-600">Showing <span class="font-medium">1-<?php echo count($locations); ?></span> of <span class="font-medium"><?php echo count($locations); ?></span> locations</p>
                         <div class="flex gap-2 w-full sm:w-auto">
                             <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Previous</button>
                             <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Next</button>
