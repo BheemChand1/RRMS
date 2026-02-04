@@ -31,13 +31,23 @@
                 <span class="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
             </button>
 
-            <!-- User Menu -->
-            <div class="flex items-center gap-2 pl-4 border-l border-gray-200">
-                <img src="https://ui-avatars.com/api/?name=RRMS+admin&background=3b82f6&color=fff"
-                    alt="User" class="w-10 h-10 rounded-full">
+            <!-- User Menu with Dropdown -->
+            <div class="flex items-center gap-2 pl-4 border-l border-gray-200 relative group">
+                <img src="https://ui-avatars.com/api/?name=<?php echo urlencode($_SESSION['user_name'] ?? 'RRMS Admin'); ?>&background=3b82f6&color=fff"
+                    alt="User" class="w-10 h-10 rounded-full cursor-pointer">
                 <div class="hidden sm:block">
-                    <p class="text-sm font-medium text-gray-800">RRMS admin</p>
+                    <p class="text-sm font-medium text-gray-800"><?php echo htmlspecialchars($_SESSION['user_name'] ?? 'RRMS Admin'); ?></p>
                     <p class="text-xs text-gray-500">Admin</p>
+                </div>
+
+                <!-- Dropdown Menu -->
+                <div class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 top-full pt-2">
+                    <div class="px-4 py-3 border-b border-gray-100">
+                        <p class="text-sm font-medium text-gray-800"><?php echo htmlspecialchars($_SESSION['user_email'] ?? 'admin@rrms.com'); ?></p>
+                    </div>
+                    <a href="./logout.php" class="block px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors">
+                        <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                    </a>
                 </div>
             </div>
         </div>

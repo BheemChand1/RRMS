@@ -1,17 +1,16 @@
 <?php
-require_once '../config/database.php';
+require_once './config/database.php';
 
 // Sample data - Replace with actual database queries when tables are available
-$bookingStats = [
-    'lobby' => 0,
+$wakeupStats = [
     'app' => 0,
+    'dashboard' => 0,
     'total' => 0
 ];
 
-// TODO: Fetch actual booking requests data
+// TODO: Fetch actual wake up requests data
 // Example query structure:
-// $stmt = $pdo->query("SELECT source, COUNT(*) as count FROM booking_requests GROUP BY source");
-// $results = $stmt->fetchAll();
+// $stmt = $pdo->query("SELECT source, COUNT(*) as count FROM wakeup_requests GROUP BY source");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -19,36 +18,35 @@ $bookingStats = [
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Booking Requests Report - RRMS Admin Dashboard</title>
+    <title>Wake Up Requests Report - RRMS Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
-        <?php include '../includes/sidebar.php'; ?>
+        <?php include './includes/sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 md:ml-64 flex flex-col overflow-hidden">
-            <?php include '../includes/navbar.php'; ?>
+            <?php include './includes/navbar.php'; ?>
 
             <!-- Page Content -->
             <main class="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
                 <!-- Breadcrumb -->
                 <div class="mb-6 flex items-center gap-2 text-xs sm:text-sm text-gray-600 overflow-x-auto">
-                    <a href="../index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
+                    <a href="./index.php" class="text-blue-600 hover:text-blue-800">Dashboard</a>
                     <i class="fas fa-chevron-right"></i>
                     <a href="#" class="text-blue-600 hover:text-blue-800">Reports</a>
                     <i class="fas fa-chevron-right"></i>
-                    <span class="text-gray-900 font-medium">Booking Requests</span>
+                    <span class="text-gray-900 font-medium">Wake Up Requests</span>
                 </div>
 
                 <!-- Header -->
                 <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 mb-6">
                     <h1 class="text-xl sm:text-2xl font-bold text-gray-900">
-                        <i class="fas fa-calendar-check mr-2 text-blue-600"></i>
-                        Booking Requests: Lobby vs App
+                        <i class="fas fa-bell mr-2 text-blue-600"></i>
+                        Wake Up Requests: App vs RM Dashboard
                     </h1>
                     <div class="flex gap-2">
                         <button onclick="window.print()" class="bg-gray-600 text-white py-2 px-4 rounded-lg hover:bg-gray-700 font-medium transition-colors text-sm">
@@ -88,19 +86,8 @@ $bookingStats = [
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">Lobby Bookings</p>
-                                <p class="text-3xl font-bold text-orange-600"><?php echo $bookingStats['lobby']; ?></p>
-                            </div>
-                            <div class="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-                                <i class="fas fa-concierge-bell text-orange-600 text-xl"></i>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-sm text-gray-500">App Bookings</p>
-                                <p class="text-3xl font-bold text-blue-600"><?php echo $bookingStats['app']; ?></p>
+                                <p class="text-sm text-gray-500">App Requests</p>
+                                <p class="text-3xl font-bold text-blue-600"><?php echo $wakeupStats['app']; ?></p>
                             </div>
                             <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
                                 <i class="fas fa-mobile-alt text-blue-600 text-xl"></i>
@@ -110,8 +97,19 @@ $bookingStats = [
                     <div class="bg-white rounded-lg shadow p-6">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm text-gray-500">Total Bookings</p>
-                                <p class="text-3xl font-bold text-green-600"><?php echo $bookingStats['total']; ?></p>
+                                <p class="text-sm text-gray-500">RM Dashboard Requests</p>
+                                <p class="text-3xl font-bold text-purple-600"><?php echo $wakeupStats['dashboard']; ?></p>
+                            </div>
+                            <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-desktop text-purple-600 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-sm text-gray-500">Total Requests</p>
+                                <p class="text-3xl font-bold text-green-600"><?php echo $wakeupStats['total']; ?></p>
                             </div>
                             <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
                                 <i class="fas fa-chart-bar text-green-600 text-xl"></i>
@@ -120,41 +118,30 @@ $bookingStats = [
                     </div>
                 </div>
 
-                <!-- Chart Section -->
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Booking Source Distribution</h3>
-                        <canvas id="bookingPieChart" height="200"></canvas>
-                    </div>
-                    <div class="bg-white rounded-lg shadow p-6">
-                        <h3 class="text-lg font-semibold text-gray-900 mb-4">Monthly Trend</h3>
-                        <canvas id="bookingLineChart" height="200"></canvas>
-                    </div>
-                </div>
-
                 <!-- Table Card -->
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="px-6 py-4 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-900">Recent Booking Requests</h3>
+                        <h3 class="text-lg font-semibold text-gray-900">Recent Wake Up Requests</h3>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
                             <thead class="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">ID</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Guest Name</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Location</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Source</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Date</th>
-                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Sr. No</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Name</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">CMSID</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Headquarter</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Designation</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Booking Location</th>
+                                    <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Wakeup Request By</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-200">
                                 <tr>
-                                    <td colspan="6" class="px-6 py-8 text-center text-gray-500">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500">
                                         <i class="fas fa-inbox text-4xl mb-3"></i>
-                                        <p>No booking requests data available yet.</p>
-                                        <p class="text-sm text-gray-400 mt-2">Data will appear here once the booking system is integrated.</p>
+                                        <p>No wake up requests data available yet.</p>
+                                        <p class="text-sm text-gray-400 mt-2">Data will appear here once the wake up system is integrated.</p>
                                     </td>
                                 </tr>
                             </tbody>
@@ -165,68 +152,7 @@ $bookingStats = [
         </div>
     </div>
 
-    <?php include '../includes/scripts.php'; ?>
-
-    <script>
-        // Pie Chart
-        const pieCtx = document.getElementById('bookingPieChart').getContext('2d');
-        new Chart(pieCtx, {
-            type: 'doughnut',
-            data: {
-                labels: ['Lobby', 'App'],
-                datasets: [{
-                    data: [<?php echo $bookingStats['lobby']; ?>, <?php echo $bookingStats['app']; ?>],
-                    backgroundColor: ['#f97316', '#3b82f6'],
-                    borderWidth: 0
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                }
-            }
-        });
-
-        // Line Chart
-        const lineCtx = document.getElementById('bookingLineChart').getContext('2d');
-        new Chart(lineCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [{
-                    label: 'Lobby',
-                    data: [0, 0, 0, 0, 0, 0],
-                    borderColor: '#f97316',
-                    backgroundColor: 'rgba(249, 115, 22, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }, {
-                    label: 'App',
-                    data: [0, 0, 0, 0, 0, 0],
-                    borderColor: '#3b82f6',
-                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
-                    tension: 0.4,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: {
-                        position: 'bottom'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
-            }
-        });
-    </script>
+    <?php include './includes/scripts.php'; ?>
 </body>
 
 </html>

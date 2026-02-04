@@ -1,5 +1,5 @@
 <?php
-require_once '../config/database.php';
+require_once './config/database.php';
 
 // Sample data - Replace with actual database queries when tables are available
 $contractStats = [
@@ -27,11 +27,11 @@ $contractStats = [
 
 <body class="bg-gray-100">
     <div class="flex h-screen overflow-hidden">
-        <?php include '../includes/sidebar.php'; ?>
+        <?php include './includes/sidebar.php'; ?>
 
         <!-- Main Content -->
         <div class="flex-1 md:ml-64 flex flex-col overflow-hidden">
-            <?php include '../includes/navbar.php'; ?>
+            <?php include './includes/navbar.php'; ?>
 
             <!-- Page Content -->
             <main class="flex-1 overflow-auto p-3 sm:p-4 md:p-8">
@@ -246,7 +246,7 @@ $contractStats = [
         </div>
     </div>
 
-    <?php include '../includes/scripts.php'; ?>
+    <?php include './includes/scripts.php'; ?>
 
     <script>
         // Pie Chart

@@ -1,5 +1,10 @@
 <?php
-require_once 'config/database.php';
+session_start();
+require_once './config/database.php';
+require_once './includes/auth.php';
+
+// Check if user is logged in
+requireLogin();
 
 // Fetch total counts from database
 $totalZones = $pdo->query("SELECT COUNT(*) as count FROM zones")->fetch()['count'];

@@ -205,25 +205,20 @@
                 <i class="fas fa-chevron-right w-4 transition-transform duration-300" id="reportsChevron"></i>
             </button>
             <div id="reportsSubmenu" class="hidden mt-2 space-y-1 ml-4">
-                <a href="reports/booking_requests.php"
+                <a href="booking_requests.php"
                     class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
                     <i class="fas fa-calendar-check w-4"></i>
                     <span>Booking Requests</span>
                 </a>
-                <a href="reports/contractor_info.php"
-                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
-                    <i class="fas fa-file-contract w-4"></i>
-                    <span>Contractor's Contract</span>
-                </a>
-                <a href="reports/wakeup_requests.php"
+                <a href="wakeup_requests.php"
                     class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
                     <i class="fas fa-bell w-4"></i>
                     <span>Wake Up Requests</span>
                 </a>
-                <a href="reports/app_users.php"
+                <a href="staff_report.php"
                     class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
-                    <i class="fas fa-mobile-alt w-4"></i>
-                    <span>App Users</span>
+                    <i class="fas fa-users w-4"></i>
+                    <span>Staff Report</span>
                 </a>
             </div>
         </div>
