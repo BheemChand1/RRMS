@@ -1,26 +1,77 @@
 <?php
 require_once 'config/database.php';
 
+// Get search and filter parameters
+$search = isset($_GET['search']) ? trim($_GET['search']) : '';
+
+// Handle entries per page
+$itemsPerPage = 15;
+if (isset($_GET['entries'])) {
+    $entries = $_GET['entries'];
+    if ($entries === 'all') {
+        $itemsPerPage = 999999; // Large number for "all"
+    } else {
+        $itemsPerPage = (int)$entries;
+        if (!in_array($itemsPerPage, [15, 25])) {
+            $itemsPerPage = 15; // Default if invalid
+        }
+    }
+}
+
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     try {
         $stmt = $pdo->prepare("DELETE FROM locations WHERE id = ?");
         $stmt->execute([$id]);
-        header("Location: view_locations.php?msg=deleted");
+        $deleteUrl = "view_locations.php?msg=deleted";
+        if ($search) $deleteUrl .= "&search=" . urlencode($search);
+        if ($itemsPerPage != 15) $deleteUrl .= "&entries=" . (isset($_GET['entries']) ? $_GET['entries'] : 15);
+        header("Location: " . $deleteUrl);
         exit;
     } catch (PDOException $e) {
         $error = "Error deleting location: " . $e->getMessage();
     }
 }
 
+// Build query based on search
+$whereClause = "";
+if ($search) {
+    $searchTerm = $pdo->quote('%' . $search . '%');
+    $whereClause = "WHERE l.name LIKE $searchTerm OR l.short_name LIKE $searchTerm OR z.name LIKE $searchTerm OR d.name LIKE $searchTerm";
+}
+
+// Get total count
+$countStmt = $pdo->query("SELECT COUNT(*) as total FROM locations l 
+                          LEFT JOIN zones z ON l.zone_id = z.id 
+                          LEFT JOIN divisions d ON l.division_id = d.id 
+                          $whereClause");
+$totalLocations = $countStmt->fetch()['total'];
+$totalPages = ceil($totalLocations / $itemsPerPage);
+if ($totalPages < 1) $totalPages = 1;
+
 // Fetch all locations with zone and division names
 $stmt = $pdo->query("SELECT l.*, z.name as zone_name, d.name as division_name 
                      FROM locations l 
                      LEFT JOIN zones z ON l.zone_id = z.id 
                      LEFT JOIN divisions d ON l.division_id = d.id 
-                     ORDER BY l.created_at DESC");
+                     $whereClause
+                     ORDER BY l.created_at DESC 
+                     LIMIT $itemsPerPage OFFSET $offset");
 $locations = $stmt->fetchAll();
+
+// Helper function to build filter URL
+function buildFilterUrl($page = 1) {
+    global $search, $itemsPerPage;
+    $url = "view_locations.php?page=" . $page;
+    if ($search) $url .= "&search=" . urlencode($search);
+    if ($itemsPerPage == 25) $url .= "&entries=25";
+    elseif ($itemsPerPage == 999999) $url .= "&entries=all";
+    return $url;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -74,6 +125,39 @@ $locations = $stmt->fetchAll();
                     </a>
                 </div>
 
+                <!-- Search and Filter Section -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <form method="GET" class="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+                        <div class="flex-1 w-full">
+                            <label for="search" class="block text-sm font-medium text-gray-700 mb-2">Search Location</label>
+                            <div class="relative">
+                                <input type="text" id="search" name="search" placeholder="Search by name, short name, zone, or division..." 
+                                    value="<?php echo htmlspecialchars($search); ?>"
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="submit" class="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="w-full sm:w-auto">
+                            <label for="entries" class="block text-sm font-medium text-gray-700 mb-2">Show Entries</label>
+                            <select id="entries" name="entries" onchange="this.form.submit()" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="15" <?php echo $itemsPerPage === 15 ? 'selected' : ''; ?>>15</option>
+                                <option value="25" <?php echo $itemsPerPage === 25 ? 'selected' : ''; ?>>25</option>
+                                <option value="all" <?php echo $itemsPerPage === 999999 ? 'selected' : ''; ?>>All</option>
+                            </select>
+                        </div>
+
+                        <?php if ($search): ?>
+                            <a href="view_locations.php" class="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 text-sm font-medium whitespace-nowrap">
+                                <i class="fas fa-times mr-1"></i> Clear Search
+                            </a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+
                 <!-- Table Card -->
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="overflow-x-auto">
@@ -117,8 +201,67 @@ $locations = $stmt->fetchAll();
                         </table>
                     </div>
                     <!-- Pagination -->
-                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
-                        <p class="text-sm text-gray-600">Showing <span class="font-medium"><?php echo count($locations); ?></span> locations</p>
+                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <p class="text-sm text-gray-600">
+                                Showing <span class="font-medium"><?php echo $totalLocations > 0 ? $offset + 1 : 0; ?></span> 
+                                to <span class="font-medium"><?php echo min($offset + $itemsPerPage, $totalLocations); ?></span> 
+                                of <span class="font-medium"><?php echo $totalLocations; ?></span> locations
+                            </p>
+                            
+                            <!-- Pagination Controls -->
+                            <div class="flex gap-2 flex-wrap">
+                                <?php if ($currentPage > 1): ?>
+                                    <a href="<?php echo buildFilterUrl(1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-step-backward"></i>
+                                    </a>
+                                    <a href="<?php echo buildFilterUrl($currentPage - 1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-chevron-left mr-1"></i> Previous
+                                    </a>
+                                <?php endif; ?>
+                                
+                                <!-- Page Numbers -->
+                                <div class="flex gap-2">
+                                    <?php 
+                                    $startPage = max(1, $currentPage - 2);
+                                    $endPage = min($totalPages, $currentPage + 2);
+                                    
+                                    if ($startPage > 1): ?>
+                                        <span class="text-gray-500 text-sm">...</span>
+                                    <?php endif;
+                                    
+                                    for ($i = $startPage; $i <= $endPage; $i++): ?>
+                                        <?php if ($i == $currentPage): ?>
+                                            <button class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">
+                                                <?php echo $i; ?>
+                                            </button>
+                                        <?php else: ?>
+                                            <a href="<?php echo buildFilterUrl($i); ?>" 
+                                                class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                                <?php echo $i; ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    <?php endfor;
+                                    
+                                    if ($endPage < $totalPages): ?>
+                                        <span class="text-gray-500 text-sm">...</span>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <?php if ($currentPage < $totalPages): ?>
+                                    <a href="<?php echo buildFilterUrl($currentPage + 1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        Next <i class="fas fa-chevron-right ml-1"></i>
+                                    </a>
+                                    <a href="<?php echo buildFilterUrl($totalPages); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-step-forward"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </main>

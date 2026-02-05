@@ -1,25 +1,89 @@
 <?php
 require_once 'config/database.php';
 
+// Get selected filters
+$locationFilter = isset($_GET['location']) ? (int)$_GET['location'] : 0;
+$mealTypeFilter = isset($_GET['meal_type']) ? trim($_GET['meal_type']) : '';
+
+// Handle entries per page
+$itemsPerPage = 10;
+if (isset($_GET['entries'])) {
+    $entries = $_GET['entries'];
+    if ($entries === 'all') {
+        $itemsPerPage = 999999; // Large number for "all"
+    } else {
+        $itemsPerPage = (int)$entries;
+        if (!in_array($itemsPerPage, [10, 15, 25])) {
+            $itemsPerPage = 10; // Default if invalid
+        }
+    }
+}
+
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = (int)$_GET['delete'];
     try {
-        $stmt = $pdo->prepare("DELETE FROM meals WHERE id = ?");
+        $stmt = $pdo->prepare("DELETE FROM meal_types WHERE id = ?");
         $stmt->execute([$id]);
-        header("Location: view_meal.php?msg=deleted");
+        $deleteUrl = "view_meal.php?msg=deleted";
+        if ($locationFilter) $deleteUrl .= "&location=" . $locationFilter;
+        if ($mealTypeFilter) $deleteUrl .= "&meal_type=" . urlencode($mealTypeFilter);
+        if ($itemsPerPage != 10) $deleteUrl .= "&entries=" . (isset($_GET['entries']) ? $_GET['entries'] : 10);
+        header("Location: " . $deleteUrl);
         exit;
     } catch (PDOException $e) {
         $error = "Error deleting meal: " . $e->getMessage();
     }
 }
 
-// Fetch all meals with location names
-$stmt = $pdo->query("SELECT m.*, l.name as location_name 
-                     FROM meals m 
-                     LEFT JOIN locations l ON m.location_id = l.id 
-                     ORDER BY m.created_at DESC");
+// Fetch all locations for filter dropdown
+$locationsStmt = $pdo->query("SELECT * FROM locations ORDER BY name ASC");
+$locations = $locationsStmt->fetchAll();
+
+// Get unique meal types for filter
+$mealTypesStmt = $pdo->query("SELECT DISTINCT meal_type FROM meal_types ORDER BY meal_type ASC");
+$mealTypes = $mealTypesStmt->fetchAll();
+
+// Build query based on filters
+$whereConditions = [];
+if ($locationFilter) {
+    $whereConditions[] = "mt.location_id = " . $locationFilter;
+}
+if ($mealTypeFilter) {
+    $whereConditions[] = "mt.meal_type = '" . $pdo->quote($mealTypeFilter) . "'";
+}
+
+$whereClause = count($whereConditions) > 0 ? "WHERE " . implode(" AND ", $whereConditions) : "";
+
+// Get total count
+$countStmt = $pdo->query("SELECT COUNT(*) as total FROM meal_types mt $whereClause");
+$totalMeals = $countStmt->fetch()['total'];
+$totalPages = ceil($totalMeals / $itemsPerPage);
+if ($totalPages < 1) $totalPages = 1;
+
+// Fetch meal types with location names (with pagination)
+$stmt = $pdo->query("SELECT mt.*, l.name as location_name 
+                     FROM meal_types mt 
+                     LEFT JOIN locations l ON mt.location_id = l.id 
+                     $whereClause
+                     ORDER BY mt.created_at DESC 
+                     LIMIT $itemsPerPage OFFSET $offset");
 $meals = $stmt->fetchAll();
+
+// Helper function to build filter URL
+function buildFilterUrl($page = 1) {
+    global $locationFilter, $mealTypeFilter, $itemsPerPage;
+    $url = "view_meal.php?page=" . $page;
+    if ($locationFilter) $url .= "&location=" . $locationFilter;
+    if ($mealTypeFilter) $url .= "&meal_type=" . urlencode($mealTypeFilter);
+    if ($itemsPerPage == 15) $url .= "&entries=15";
+    elseif ($itemsPerPage == 25) $url .= "&entries=25";
+    elseif ($itemsPerPage == 999999) $url .= "&entries=all";
+    return $url;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,6 +137,54 @@ $meals = $stmt->fetchAll();
                     </a>
                 </div>
 
+                <!-- Filter Section -->
+                <div class="bg-white rounded-lg shadow p-4 mb-6">
+                    <form method="GET" class="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+                        <div class="w-full sm:w-auto">
+                            <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Filter by Location</label>
+                            <select id="location" name="location" onchange="this.form.submit()" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Locations</option>
+                                <?php foreach ($locations as $loc): ?>
+                                    <option value="<?php echo $loc['id']; ?>" <?php echo $locationFilter === (int)$loc['id'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($loc['name']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="w-full sm:w-auto">
+                            <label for="meal_type" class="block text-sm font-medium text-gray-700 mb-2">Filter by Meal Type</label>
+                            <select id="meal_type" name="meal_type" onchange="this.form.submit()" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="">All Meal Types</option>
+                                <?php foreach ($mealTypes as $type): ?>
+                                    <option value="<?php echo htmlspecialchars($type['meal_type']); ?>" <?php echo $mealTypeFilter === $type['meal_type'] ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($type['meal_type']); ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+
+                        <div class="w-full sm:w-auto">
+                            <label for="entries" class="block text-sm font-medium text-gray-700 mb-2">Show Entries</label>
+                            <select id="entries" name="entries" onchange="this.form.submit()" 
+                                class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="10" <?php echo $itemsPerPage === 10 ? 'selected' : ''; ?>>10</option>
+                                <option value="15" <?php echo $itemsPerPage === 15 ? 'selected' : ''; ?>>15</option>
+                                <option value="25" <?php echo $itemsPerPage === 25 ? 'selected' : ''; ?>>25</option>
+                                <option value="all" <?php echo $itemsPerPage === 999999 ? 'selected' : ''; ?>>All</option>
+                            </select>
+                        </div>
+
+                        <?php if ($locationFilter || $mealTypeFilter): ?>
+                            <a href="view_meal.php" class="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 text-sm font-medium whitespace-nowrap">
+                                <i class="fas fa-times mr-1"></i> Clear Filters
+                            </a>
+                        <?php endif; ?>
+                    </form>
+                </div>
+
                 <!-- Table Card -->
                 <div class="bg-white rounded-lg shadow overflow-hidden">
                     <div class="overflow-x-auto">
@@ -116,69 +228,66 @@ $meals = $stmt->fetchAll();
                         </table>
                     </div>
                     <!-- Pagination -->
-                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4 flex items-center justify-between">
-                        <p class="text-sm text-gray-600">Showing <span class="font-medium"><?php echo count($meals); ?></span> meals</p>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <?php include 'includes/scripts.php'; ?>
-</body>
-
-</html>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Lunch</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Bangalore</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">₹250</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Dinner</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Mumbai</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">₹300</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Parcel</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Delhi</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">₹180</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Active
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Pagination -->
-                    <div class="bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <p class="text-xs sm:text-sm text-gray-600">Showing <span class="font-medium">1-4</span> of <span class="font-medium">4</span> meals</p>
-                        <div class="flex gap-2 w-full sm:w-auto">
-                            <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Previous</button>
-                            <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Next</button>
+                    <div class="bg-gray-50 border-t border-gray-200 px-6 py-4">
+                        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                            <p class="text-sm text-gray-600">
+                                Showing <span class="font-medium"><?php echo $totalMeals > 0 ? $offset + 1 : 0; ?></span> 
+                                to <span class="font-medium"><?php echo min($offset + $itemsPerPage, $totalMeals); ?></span> 
+                                of <span class="font-medium"><?php echo $totalMeals; ?></span> meals
+                            </p>
+                            
+                            <!-- Pagination Controls -->
+                            <div class="flex gap-2 flex-wrap">
+                                <?php if ($currentPage > 1): ?>
+                                    <a href="<?php echo buildFilterUrl(1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-step-backward"></i>
+                                    </a>
+                                    <a href="<?php echo buildFilterUrl($currentPage - 1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-chevron-left mr-1"></i> Previous
+                                    </a>
+                                <?php endif; ?>
+                                
+                                <!-- Page Numbers -->
+                                <div class="flex gap-2">
+                                    <?php 
+                                    $startPage = max(1, $currentPage - 2);
+                                    $endPage = min($totalPages, $currentPage + 2);
+                                    
+                                    if ($startPage > 1): ?>
+                                        <span class="text-gray-500 text-sm">...</span>
+                                    <?php endif;
+                                    
+                                    for ($i = $startPage; $i <= $endPage; $i++): ?>
+                                        <?php if ($i == $currentPage): ?>
+                                            <button class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">
+                                                <?php echo $i; ?>
+                                            </button>
+                                        <?php else: ?>
+                                            <a href="<?php echo buildFilterUrl($i); ?>" 
+                                                class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                                <?php echo $i; ?>
+                                            </a>
+                                        <?php endif; ?>
+                                    <?php endfor;
+                                    
+                                    if ($endPage < $totalPages): ?>
+                                        <span class="text-gray-500 text-sm">...</span>
+                                    <?php endif; ?>
+                                </div>
+                                
+                                <?php if ($currentPage < $totalPages): ?>
+                                    <a href="<?php echo buildFilterUrl($currentPage + 1); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        Next <i class="fas fa-chevron-right ml-1"></i>
+                                    </a>
+                                    <a href="<?php echo buildFilterUrl($totalPages); ?>" 
+                                        class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                        <i class="fas fa-step-forward"></i>
+                                    </a>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>

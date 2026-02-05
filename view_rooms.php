@@ -163,7 +163,7 @@ function getStatusColor($status) {
     return $statusMap[$status] ?? ['color' => 'bg-green-500', 'text' => 'Vacant'];
 }
 ?>
-?>
+
 <!DOCTYPE html>
 <html lang="en">
 

@@ -194,6 +194,34 @@
             </div>
         </div>
 
+        <!-- Users Menu Item -->
+        <a href="view_users.php"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+            <i class="fas fa-users w-5"></i>
+            <span>Users</span>
+        </a>
+
+        <!-- Manage Subscription Menu Item -->
+        <a href="manage_subscription.php"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+            <i class="fas fa-calendar-alt w-5"></i>
+            <span>Subscription</span>
+        </a>
+
+        <!-- Login Portal Menu Item -->
+        <a href="login_portal.php"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+            <i class="fas fa-sign-in-alt w-5"></i>
+            <span>Login Portal</span>
+        </a>
+
+        <!-- Post Updates Menu Item -->
+        <a href="post_updates.php"
+            class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+            <i class="fas fa-newspaper w-5"></i>
+            <span>Post Updates</span>
+        </a>
+
         <!-- Reports Menu Item -->
         <div>
             <button id="reportsToggle"

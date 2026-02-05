@@ -4,6 +4,26 @@ require_once 'config/database.php';
 $message = '';
 $messageType = '';
 
+// Get location filter
+$locationFilter = isset($_GET['location']) ? (int)$_GET['location'] : 0;
+
+// Handle entries per page
+$itemsPerPage = 10;
+if (isset($_GET['entries'])) {
+    $entries = $_GET['entries'];
+    if ($entries === 'all') {
+        $itemsPerPage = 999999; // Large number for "all"
+    } else {
+        $itemsPerPage = (int)$entries;
+        if (!in_array($itemsPerPage, [10, 15, 25])) {
+            $itemsPerPage = 10; // Default if invalid
+        }
+    }
+}
+
+$currentPage = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$offset = ($currentPage - 1) * $itemsPerPage;
+
 // Handle delete action
 if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])) {
     $id = (int)$_GET['id'];
@@ -18,14 +38,40 @@ if (isset($_GET['action']) && $_GET['action'] === 'delete' && isset($_GET['id'])
     }
 }
 
-// Fetch all complaint types with location names
+// Fetch all locations for filter dropdown
+$locationsStmt = $pdo->query("SELECT * FROM locations ORDER BY name ASC");
+$locations = $locationsStmt->fetchAll();
+
+// Build query based on location filter
+$whereClause = $locationFilter ? "WHERE ct.location_id = " . $locationFilter : "";
+
+// Get total count
+$countStmt = $pdo->query("SELECT COUNT(*) as total FROM complaint_types ct $whereClause");
+$totalComplaints = $countStmt->fetch()['total'];
+$totalPages = ceil($totalComplaints / $itemsPerPage);
+if ($totalPages < 1) $totalPages = 1;
+
+// Fetch complaint types with location names (with pagination)
 $stmt = $pdo->query("
     SELECT ct.id, ct.complaint_type, ct.location_id, l.name as location_name, ct.created_at, ct.updated_at
     FROM complaint_types ct
     LEFT JOIN locations l ON ct.location_id = l.id
+    $whereClause
     ORDER BY ct.created_at DESC
+    LIMIT $itemsPerPage OFFSET $offset
 ");
 $complaintTypes = $stmt->fetchAll();
+
+// Helper function to build filter URL
+function buildFilterUrl($page = 1) {
+    global $locationFilter, $itemsPerPage;
+    $url = "view_complaint.php?page=" . $page;
+    if ($locationFilter) $url .= "&location=" . $locationFilter;
+    if ($itemsPerPage == 15) $url .= "&entries=15";
+    elseif ($itemsPerPage == 25) $url .= "&entries=25";
+    elseif ($itemsPerPage == 999999) $url .= "&entries=all";
+    return $url;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -73,6 +119,41 @@ $complaintTypes = $stmt->fetchAll();
                             class="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 font-medium transition-colors flex items-center justify-center sm:justify-start gap-2 text-sm sm:text-base">
                             <i class="fas fa-plus"></i> Create New
                         </a>
+                    </div>
+
+                    <!-- Filter Section -->
+                    <div class="bg-white rounded-lg shadow p-4 mb-6">
+                        <form method="GET" class="flex flex-col lg:flex-row gap-4 items-start lg:items-end">
+                            <div class="w-full sm:w-auto">
+                                <label for="location" class="block text-sm font-medium text-gray-700 mb-2">Filter by Location</label>
+                                <select id="location" name="location" onchange="this.form.submit()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">All Locations</option>
+                                    <?php foreach ($locations as $loc): ?>
+                                        <option value="<?php echo $loc['id']; ?>" <?php echo $locationFilter === (int)$loc['id'] ? 'selected' : ''; ?>>
+                                            <?php echo htmlspecialchars($loc['name']); ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="w-full sm:w-auto">
+                                <label for="entries" class="block text-sm font-medium text-gray-700 mb-2">Show Entries</label>
+                                <select id="entries" name="entries" onchange="this.form.submit()" 
+                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="10" <?php echo $itemsPerPage === 10 ? 'selected' : ''; ?>>10</option>
+                                    <option value="15" <?php echo $itemsPerPage === 15 ? 'selected' : ''; ?>>15</option>
+                                    <option value="25" <?php echo $itemsPerPage === 25 ? 'selected' : ''; ?>>25</option>
+                                    <option value="all" <?php echo $itemsPerPage === 999999 ? 'selected' : ''; ?>>All</option>
+                                </select>
+                            </div>
+
+                            <?php if ($locationFilter): ?>
+                                <a href="view_complaint.php" class="bg-gray-500 text-white py-2 px-4 rounded-lg hover:bg-gray-600 text-sm font-medium whitespace-nowrap">
+                                    <i class="fas fa-times mr-1"></i> Clear Filter
+                                </a>
+                            <?php endif; ?>
+                        </form>
                     </div>
 
                     <!-- Table Card -->
@@ -127,127 +208,66 @@ $complaintTypes = $stmt->fetchAll();
 
                         <!-- Footer Stats -->
                         <div class="border-t border-gray-200 bg-gray-50 px-3 sm:px-6 py-4">
-                            <p class="text-xs sm:text-sm text-gray-600">
-                                <strong><?php echo count($complaintTypes); ?></strong> complaint type(s) found
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </main>
-        </div>
-    </div>
-
-    <?php include 'includes/scripts.php'; ?>
-</body>
-
-</html>
-
-                    <div class="bg-white rounded-lg shadow p-4 sm:p-6 border-l-4 border-green-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-500 text-sm font-medium">Resolved</p>
-                                <p class="text-2xl sm:text-3xl font-bold text-gray-900 mt-2">7</p>
+                            <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                                <p class="text-xs sm:text-sm text-gray-600">
+                                    Showing <span class="font-medium"><?php echo $totalComplaints > 0 ? $offset + 1 : 0; ?></span> 
+                                    to <span class="font-medium"><?php echo min($offset + $itemsPerPage, $totalComplaints); ?></span> 
+                                    of <span class="font-medium"><?php echo $totalComplaints; ?></span> complaint type(s)
+                                </p>
+                                
+                                <!-- Pagination Controls -->
+                                <div class="flex gap-2 flex-wrap">
+                                    <?php if ($currentPage > 1): ?>
+                                        <a href="<?php echo buildFilterUrl(1); ?>" 
+                                            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                            <i class="fas fa-step-backward"></i>
+                                        </a>
+                                        <a href="<?php echo buildFilterUrl($currentPage - 1); ?>" 
+                                            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                            <i class="fas fa-chevron-left mr-1"></i> Previous
+                                        </a>
+                                    <?php endif; ?>
+                                    
+                                    <!-- Page Numbers -->
+                                    <div class="flex gap-2">
+                                        <?php 
+                                        $startPage = max(1, $currentPage - 2);
+                                        $endPage = min($totalPages, $currentPage + 2);
+                                        
+                                        if ($startPage > 1): ?>
+                                            <span class="text-gray-500 text-sm">...</span>
+                                        <?php endif;
+                                        
+                                        for ($i = $startPage; $i <= $endPage; $i++): ?>
+                                            <?php if ($i == $currentPage): ?>
+                                                <button class="px-3 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium">
+                                                    <?php echo $i; ?>
+                                                </button>
+                                            <?php else: ?>
+                                                <a href="<?php echo buildFilterUrl($i); ?>" 
+                                                    class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                                    <?php echo $i; ?>
+                                                </a>
+                                            <?php endif; ?>
+                                        <?php endfor;
+                                        
+                                        if ($endPage < $totalPages): ?>
+                                            <span class="text-gray-500 text-sm">...</span>
+                                        <?php endif; ?>
+                                    </div>
+                                    
+                                    <?php if ($currentPage < $totalPages): ?>
+                                        <a href="<?php echo buildFilterUrl($currentPage + 1); ?>" 
+                                            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                            Next <i class="fas fa-chevron-right ml-1"></i>
+                                        </a>
+                                        <a href="<?php echo buildFilterUrl($totalPages); ?>" 
+                                            class="px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm font-medium">
+                                            <i class="fas fa-step-forward"></i>
+                                        </a>
+                                    <?php endif; ?>
+                                </div>
                             </div>
-                            <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-check-circle text-xl sm:text-2xl text-green-600"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Table Card -->
-                <div class="bg-white rounded-lg shadow overflow-hidden">
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead class="bg-gray-50 border-b border-gray-200">
-                                <tr>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Complaint Type</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Location</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Date</th>
-                                    <th class="px-4 sm:px-6 py-3 text-left text-xs sm:text-sm font-semibold text-gray-700">Status</th>
-                                    <th class="px-4 sm:px-6 py-3 text-center text-xs sm:text-sm font-semibold text-gray-700">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody class="divide-y divide-gray-200">
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Water Problem</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Ahmedabad</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">2026-01-18</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            Pending
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Electrical Issue</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Bangalore</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">2026-01-17</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Resolved
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Maintenance</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Mumbai</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">2026-01-16</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            Pending
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">Cleaning Issue</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Delhi</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">2026-01-15</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                            Resolved
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                                <tr class="hover:bg-gray-50">
-                                    <td class="px-4 sm:px-6 py-4 text-sm font-medium text-gray-900">WiFi Problem</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">Pune</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-gray-600">2026-01-14</td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm">
-                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                                            Pending
-                                        </span>
-                                    </td>
-                                    <td class="px-4 sm:px-6 py-4 text-sm text-center">
-                                        <button class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3 text-xs sm:text-sm">Edit</button>
-                                        <button class="text-red-600 hover:text-red-800 hover:underline font-medium text-xs sm:text-sm">Delete</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Pagination -->
-                    <div class="bg-gray-50 border-t border-gray-200 px-4 sm:px-6 py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                        <p class="text-xs sm:text-sm text-gray-600">Showing <span class="font-medium">1-5</span> of <span class="font-medium">12</span> complaints</p>
-                        <div class="flex gap-2 w-full sm:w-auto">
-                            <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Previous</button>
-                            <button class="flex-1 sm:flex-none px-3 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 text-sm">Next</button>
                         </div>
                     </div>
                 </div>

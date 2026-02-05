@@ -12,7 +12,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Handle bulk meal insertion
     if (isset($_POST['meals']) && is_array($_POST['meals']) && count($_POST['meals']) > 0) {
         try {
-            $stmt = $pdo->prepare("INSERT INTO meals (meal_type, price, location_id) VALUES (?, ?, ?)");
+            $stmt = $pdo->prepare("INSERT INTO meal_types (meal_type, price, location_id) VALUES (?, ?, ?)");
             $insertedCount = 0;
             
             foreach ($_POST['meals'] as $meal) {
@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
             
             if ($insertedCount > 0) {
-                $message = "Successfully created $insertedCount meal(s)!";
+                $message = "Successfully created $insertedCount meal type(s)!";
                 $messageType = "success";
             } else {
                 $message = "No valid meals to insert.";
@@ -235,56 +235,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (tableBody.children.length === 0) {
                 e.preventDefault();
                 alert('Please add at least one meal before submitting');
-            }
-        });
-    </script>
-</body>
-
-</html>
-                if (emptyMessage) {
-                    emptyMessage.style.display = 'block';
-                }
-            }
-        }
-
-        // Form Submit Handler
-        document.querySelector('form').addEventListener('submit', function(e) {
-            e.preventDefault();
-
-            const tableBody = document.getElementById('mealsTableBody');
-            if (tableBody.children.length === 0) {
-                alert('Please add at least one meal before submitting');
-                return;
-            }
-
-            // Collect all meal data
-            const mealsData = [];
-            const rows = tableBody.querySelectorAll('tr');
-            
-            rows.forEach(row => {
-                const cells = row.querySelectorAll('td');
-                mealsData.push({
-                    mealType: cells[0].textContent,
-                    location: cells[1].textContent,
-                    price: cells[2].textContent.replace('₹', '').trim()
-                });
-            });
-
-            console.log('Meals Data:', mealsData);
-            
-            // Here you would send the data to your backend
-            alert('Meals submitted successfully!\n\nTotal meals: ' + mealsData.length + '\n\nYou can now implement backend processing.');
-
-            // Reset form
-            document.getElementById('mealsTableBody').innerHTML = '';
-            document.getElementById('emptyMessage').style.display = 'block';
-        });
-
-        // Allow Enter key to add row
-        document.getElementById('price').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                document.getElementById('addRowBtn').click();
             }
         });
     </script>
