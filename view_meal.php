@@ -210,9 +210,16 @@ function buildFilterUrl($page = 1) {
                                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo htmlspecialchars($meal['location_name'] ?? 'N/A'); ?></td>
                                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($meal['created_at'])); ?></td>
                                             <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y H:i', strtotime($meal['updated_at'])); ?></td>
-                                            <td class="px-6 py-4 text-sm">
-                                                <a href="edit_meal.php?id=<?php echo $meal['id']; ?>" class="text-blue-600 hover:text-blue-800 hover:underline font-medium mr-3">Edit</a>
-                                                <a href="view_meal.php?delete=<?php echo $meal['id']; ?>" onclick="return confirm('Are you sure you want to delete this meal?')" class="text-red-600 hover:text-red-800 hover:underline font-medium">Delete</a>
+                                            <td class="px-6 py-4 text-sm space-x-2">
+                                                <a href="edit_meal.php?id=<?php echo $meal['id']; ?>" 
+                                                    class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1.5 px-3 rounded transition-colors text-xs sm:text-sm font-medium">
+                                                    <i class="fas fa-edit mr-1"></i> Edit
+                                                </a>
+                                                <a href="view_meal.php?delete=<?php echo $meal['id']; ?>" 
+                                                    onclick="return confirm('Are you sure you want to delete this meal?')" 
+                                                    class="inline-block bg-red-500 hover:bg-red-600 text-white py-1.5 px-3 rounded transition-colors text-xs sm:text-sm font-medium">
+                                                    <i class="fas fa-trash mr-1"></i> Delete
+                                                </a>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>

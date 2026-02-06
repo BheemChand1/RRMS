@@ -194,6 +194,31 @@
             </div>
         </div>
 
+        <!-- Tickets Menu Item -->
+        <div>
+            <button id="ticketsToggle"
+                class="w-full flex items-center justify-between px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">
+                <div class="flex items-center gap-3">
+                    <i class="fas fa-ticket-alt w-5"></i>
+                    <span>Tickets</span>
+                    <?php 
+                        $pendingCount = $pdo->query("SELECT COUNT(*) as count FROM tickets WHERE status IN ('Open', 'In Progress')")->fetch()['count'];
+                        if ($pendingCount > 0) {
+                            echo '<span class="ml-auto bg-red-600 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">' . $pendingCount . '</span>';
+                        }
+                    ?>
+                </div>
+                <i class="fas fa-chevron-right w-4 transition-transform duration-300" id="ticketsChevron"></i>
+            </button>
+            <div id="ticketsSubmenu" class="hidden mt-2 space-y-1 ml-4">
+                <a href="view_tickets.php"
+                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-300 hover:bg-slate-700 rounded-lg transition-colors">
+                    <i class="fas fa-eye w-4"></i>
+                    <span>View Tickets</span>
+                </a>
+            </div>
+        </div>
+
         <!-- Users Menu Item -->
         <a href="view_users.php"
             class="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-slate-300 hover:bg-slate-700 transition-colors">

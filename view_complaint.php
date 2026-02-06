@@ -182,8 +182,12 @@ function buildFilterUrl($page = 1) {
                                                 <td class="px-3 sm:px-6 py-4 text-xs sm:text-sm text-gray-600"><?php echo date('Y-m-d H:i:s', strtotime($complaint['updated_at'])); ?></td>
                                                 <td class="px-3 sm:px-6 py-4 text-center">
                                                     <div class="flex gap-2 justify-center flex-wrap">
+                                                        <a href="edit_complaint.php?id=<?php echo $complaint['id']; ?>" 
+                                                            class="inline-block bg-blue-500 hover:bg-blue-600 text-white py-1.5 px-3 rounded transition-colors text-xs sm:text-sm font-medium">
+                                                            <i class="fas fa-edit mr-1"></i> Edit
+                                                        </a>
                                                         <a href="?action=delete&id=<?php echo $complaint['id']; ?>"
-                                                            class="text-red-600 hover:text-red-800 font-medium text-xs sm:text-sm"
+                                                            class="inline-block bg-red-500 hover:bg-red-600 text-white py-1.5 px-3 rounded transition-colors text-xs sm:text-sm font-medium"
                                                             onclick="return confirm('Are you sure you want to delete this complaint type?');">
                                                             <i class="fas fa-trash mr-1"></i> Delete
                                                         </a>

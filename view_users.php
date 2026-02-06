@@ -218,7 +218,6 @@ function buildFilterUrl($page = 1) {
                                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Signup Location</th>
                                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Designation</th>
                                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Role</th>
-                                        <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Status</th>
                                         <th class="px-6 py-3 text-left text-sm font-semibold text-gray-700">Joined</th>
                                         <th class="px-6 py-3 text-center text-sm font-semibold text-gray-700">Actions</th>
                                     </tr>
@@ -250,17 +249,6 @@ function buildFilterUrl($page = 1) {
                                                         <?php echo htmlspecialchars($user['user_type_name'] ?? 'N/A'); ?>
                                                     </span>
                                                 </td>
-                                                <td class="px-6 py-4 text-sm">
-                                                    <?php if ($user['status'] === 'active'): ?>
-                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                                            <i class="fas fa-circle text-xs mr-1"></i> Active
-                                                        </span>
-                                                    <?php else: ?>
-                                                        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                                                            <i class="fas fa-circle text-xs mr-1"></i> <?php echo ucfirst($user['status']); ?>
-                                                        </span>
-                                                    <?php endif; ?>
-                                                </td>
                                                 <td class="px-6 py-4 text-sm text-gray-600"><?php echo date('M d, Y', strtotime($user['created_at'])); ?></td>
                                                 <td class="px-6 py-4 text-sm">
                                                     <div class="flex items-center justify-center gap-2">
@@ -279,7 +267,7 @@ function buildFilterUrl($page = 1) {
                                         <?php endforeach; ?>
                                     <?php else: ?>
                                         <tr>
-                                            <td colspan="11" class="px-6 py-8 text-center text-gray-500">
+                                            <td colspan="10" class="px-6 py-8 text-center text-gray-500">
                                                 <i class="fas fa-inbox text-4xl mb-3 block opacity-50"></i>
                                                 <p class="text-base">No users found matching your criteria.</p>
                                             </td>

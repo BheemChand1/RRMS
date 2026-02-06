@@ -10,6 +10,62 @@ requireLogin();
 $totalZones = $pdo->query("SELECT COUNT(*) as count FROM zones")->fetch()['count'];
 $totalDivisions = $pdo->query("SELECT COUNT(*) as count FROM divisions")->fetch()['count'];
 $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch()['count'];
+
+// Fetch total users
+$totalUsers = $pdo->query("SELECT COUNT(*) as count FROM users")->fetch()['count'];
+
+// Fetch new users this month
+$newUsersThisMonth = $pdo->query("SELECT COUNT(*) as count FROM users WHERE MONTH(created_at) = MONTH(NOW()) AND YEAR(created_at) = YEAR(NOW())")->fetch()['count'];
+
+// Fetch total rooms
+$totalRooms = $pdo->query("SELECT COUNT(*) as count FROM rooms")->fetch()['count'];
+
+// Fetch total beds (sum of no_of_bed from rooms table)
+$totalBeds = $pdo->query("SELECT COALESCE(SUM(no_of_bed), 0) as count FROM rooms")->fetch()['count'];
+
+// Fetch total bookings (active/ongoing)
+$totalBookings = $pdo->query("SELECT COUNT(*) as count FROM bookings WHERE booking_status = 2")->fetch()['count'];
+
+// Fetch new bookings today
+$newBookingsToday = $pdo->query("SELECT COUNT(*) as count FROM bookings WHERE DATE(created_at) = DATE(NOW())")->fetch()['count'];
+
+// Fetch occupied rooms
+$occupiedRooms = $pdo->query("SELECT COUNT(*) as count FROM rooms WHERE status = 'occupied'")->fetch()['count'];
+
+// Calculate occupancy rate
+$occupancyRate = $totalRooms > 0 ? round(($occupiedRooms / $totalRooms) * 100, 1) : 0;
+
+// Fetch ticket statistics
+$totalTickets = $pdo->query("SELECT COUNT(*) as count FROM tickets")->fetch()['count'];
+$openTickets = $pdo->query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Open'")->fetch()['count'];
+$inProgressTickets = $pdo->query("SELECT COUNT(*) as count FROM tickets WHERE status = 'In Progress'")->fetch()['count'];
+$resolvedTickets = $pdo->query("SELECT COUNT(*) as count FROM tickets WHERE status = 'Resolved'")->fetch()['count'];
+
+// Fetch locations with subscription dates, ordered by expiration
+$subscriptionLocations = $pdo->query("
+    SELECT l.name as location_name, z.name as zone_name, d.name as division_name, 
+           l.subscription_end, 
+           DATEDIFF(l.subscription_end, NOW()) as days_remaining
+    FROM locations l
+    LEFT JOIN zones z ON l.zone_id = z.id
+    LEFT JOIN divisions d ON l.division_id = d.id
+    WHERE l.subscription_end IS NOT NULL
+    ORDER BY l.subscription_end ASC
+    LIMIT 6
+")->fetchAll();
+
+// Function to determine subscription status
+function getSubscriptionStatus($daysRemaining) {
+    if ($daysRemaining < 0) {
+        return ['status' => 'Expired', 'class' => 'bg-red-100 text-red-800'];
+    } elseif ($daysRemaining <= 7) {
+        return ['status' => 'Critical', 'class' => 'bg-red-100 text-red-800'];
+    } elseif ($daysRemaining <= 30) {
+        return ['status' => 'Attention Needed', 'class' => 'bg-yellow-100 text-yellow-800'];
+    } else {
+        return ['status' => 'Active', 'class' => 'bg-green-100 text-green-800'];
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -83,8 +139,8 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Users</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">156</p>
-                                <p class="text-green-600 text-xs mt-2"><i class="fas fa-arrow-up"></i> 8 new this month
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalUsers; ?></p>
+                                <p class="text-green-600 text-xs mt-2"><i class="fas fa-arrow-up"></i> <?php echo $newUsersThisMonth; ?> new this month
                                 </p>
                             </div>
                             <div class="w-14 h-14 bg-green-100 rounded-lg flex items-center justify-center">
@@ -101,7 +157,7 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Rooms</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">248</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalRooms; ?></p>
                                 <p class="text-gray-600 text-xs mt-2">All rooms combined</p>
                             </div>
                             <div class="w-14 h-14 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -115,7 +171,7 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Total Beds</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">385</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalBeds; ?></p>
                                 <p class="text-gray-600 text-xs mt-2">Capacity for guests</p>
                             </div>
                             <div class="w-14 h-14 bg-indigo-100 rounded-lg flex items-center justify-center">
@@ -129,8 +185,8 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-gray-500 text-sm font-medium">Active Bookings</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">164</p>
-                                <p class="text-green-600 text-xs mt-2"><i class="fas fa-arrow-up"></i> 12 new today</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalBookings; ?></p>
+                                <p class="text-green-600 text-xs mt-2"><i class="fas fa-arrow-up"></i> <?php echo $newBookingsToday; ?> new today</p>
                             </div>
                             <div class="w-14 h-14 bg-orange-100 rounded-lg flex items-center justify-center">
                                 <i class="fas fa-calendar-check text-2xl text-orange-600"></i>
@@ -138,16 +194,16 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                         </div>
                     </div>
 
-                    <!-- Occupied Rooms -->
+                    <!-- Support Tickets -->
                     <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-gray-500 text-sm font-medium">Occupied Rooms</p>
-                                <p class="text-3xl font-bold text-gray-900 mt-2">192</p>
-                                <p class="text-gray-600 text-xs mt-2">77.4% occupancy rate</p>
+                                <p class="text-gray-500 text-sm font-medium">Support Tickets</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-2"><?php echo $totalTickets; ?></p>
+                                <p class="text-orange-600 text-xs mt-2"><i class="fas fa-hourglass-half"></i> <?php echo $openTickets; ?> pending</p>
                             </div>
                             <div class="w-14 h-14 bg-red-100 rounded-lg flex items-center justify-center">
-                                <i class="fas fa-home text-2xl text-red-600"></i>
+                                <i class="fas fa-ticket-alt text-2xl text-red-600"></i>
                             </div>
                         </div>
                     </div>
@@ -157,7 +213,7 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                 <div class="bg-white rounded-lg shadow p-6 mb-8">
                     <div class="flex items-center justify-between mb-6">
                         <h3 class="text-lg font-bold text-gray-900">Locations by Subscription End Date</h3>
-                        <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all</a>
+                        <a href="manage_subscription.php" class="text-blue-600 hover:text-blue-800 text-sm font-medium">View all</a>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full text-sm">
@@ -173,66 +229,25 @@ $totalLocations = $pdo->query("SELECT COUNT(*) as count FROM locations")->fetch(
                                 </tr>
                             </thead>
                             <tbody>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Dhagandhara</td>
-                                    <td class="py-3 px-4 text-gray-600">Western Railways</td>
-                                    <td class="py-3 px-4 text-gray-600">Ahmedabad Division</td>
-                                    <td class="py-3 px-4 text-gray-600">Jan 25, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">8 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Expiring
-                                            Soon</span></td>
-                                </tr>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Ahmedabad</td>
-                                    <td class="py-3 px-4 text-gray-600">Western Railways</td>
-                                    <td class="py-3 px-4 text-gray-600">Ahmedabad Division</td>
-                                    <td class="py-3 px-4 text-gray-600">Mar 15, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">57 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Sabarmati</td>
-                                    <td class="py-3 px-4 text-gray-600">Western Railways</td>
-                                    <td class="py-3 px-4 text-gray-600">Ahmedabad Division</td>
-                                    <td class="py-3 px-4 text-gray-600">Feb 10, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">24 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">Attention
-                                            Needed</span></td>
-                                </tr>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Gandhidham</td>
-                                    <td class="py-3 px-4 text-gray-600">Western Railways</td>
-                                    <td class="py-3 px-4 text-gray-600">Rajkot Division</td>
-                                    <td class="py-3 px-4 text-gray-600">May 30, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">134 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Palanpur</td>
-                                    <td class="py-3 px-4 text-gray-600">Western Railways</td>
-                                    <td class="py-3 px-4 text-gray-600">Rajkot Division</td>
-                                    <td class="py-3 px-4 text-gray-600">Jan 22, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">5 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">Critical</span>
-                                    </td>
-                                </tr>
-                                <tr class="border-b border-gray-100 hover:bg-gray-50">
-                                    <td class="py-3 px-4 font-medium text-gray-900">Bhildi</td>
-                                    <td class="py-3 px-4 text-gray-600">North Western Railway</td>
-                                    <td class="py-3 px-4 text-gray-600">Ajmer</td>
-                                    <td class="py-3 px-4 text-gray-600">Apr 08, 2026</td>
-                                    <td class="py-3 px-4 text-gray-600">81 days</td>
-                                    <td class="py-3 px-4"><span
-                                            class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">Active</span>
-                                    </td>
-                                </tr>
+                                <?php if (count($subscriptionLocations) > 0): ?>
+                                    <?php foreach ($subscriptionLocations as $location): ?>
+                                        <?php $statusInfo = getSubscriptionStatus($location['days_remaining']); ?>
+                                        <tr class="border-b border-gray-100 hover:bg-gray-50">
+                                            <td class="py-3 px-4 font-medium text-gray-900"><?php echo htmlspecialchars($location['location_name']); ?></td>
+                                            <td class="py-3 px-4 text-gray-600"><?php echo htmlspecialchars($location['zone_name'] ?? 'N/A'); ?></td>
+                                            <td class="py-3 px-4 text-gray-600"><?php echo htmlspecialchars($location['division_name'] ?? 'N/A'); ?></td>
+                                            <td class="py-3 px-4 text-gray-600"><?php echo $location['subscription_end'] ? date('M d, Y', strtotime($location['subscription_end'])) : 'N/A'; ?></td>
+                                            <td class="py-3 px-4 text-gray-600"><?php echo max(0, $location['days_remaining']); ?> days</td>
+                                            <td class="py-3 px-4"><span class="<?php echo $statusInfo['class']; ?> text-xs px-2 py-1 rounded-full"><?php echo $statusInfo['status']; ?></span></td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                <?php else: ?>
+                                    <tr>
+                                        <td colspan="6" class="py-8 px-4 text-center text-gray-500">
+                                            No subscription data available
+                                        </td>
+                                    </tr>
+                                <?php endif; ?>
                             </tbody>
                         </table>
                     </div>

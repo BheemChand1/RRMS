@@ -72,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              class="h-24 sm:h-28 w-auto">
                     </div>
                     <h1 class="text-2xl sm:text-3xl font-bold text-white mb-2">RRMS</h1>
-                    <p class="text-blue-100 text-sm">Room & Residence Management System</p>
+                    <p class="text-blue-100 text-sm">Running Room Management System</p>
                 </div>
 
                 <!-- Form Section -->

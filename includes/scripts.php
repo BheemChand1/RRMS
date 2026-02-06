@@ -48,5 +48,6 @@
     setupMenuToggle('feedbackToggle', 'feedbackSubmenu', 'feedbackChevron');
     setupMenuToggle('mealToggle', 'mealSubmenu', 'mealChevron');
     setupMenuToggle('complaintToggle', 'complaintSubmenu', 'complaintChevron');
+    setupMenuToggle('ticketsToggle', 'ticketsSubmenu', 'ticketsChevron');
     setupMenuToggle('reportsToggle', 'reportsSubmenu', 'reportsChevron');
 </script>
